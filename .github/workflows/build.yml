@@ -3,10 +3,14 @@ name: project builder
 on:
   workflow_dispatch:
     inputs:
-      project_path:
+      repository:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
+      deploy-to-pages:
+        type: boolean
+        description: deploy to gh-pages branch for <owner>/<repo> after build
+        default: true
 
 permissions:
   contents: write
@@ -34,7 +38,7 @@ jobs:
       - name: clone project
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.inputs.project_path }}
+          repository: ${{ github.event.inputs.repository }}
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
@@ -114,6 +118,7 @@ jobs:
   deploy:
     needs: read
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
     steps:
       - name: download webgl build
         uses: actions/download-artifact@v3
