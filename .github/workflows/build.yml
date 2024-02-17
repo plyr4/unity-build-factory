@@ -58,21 +58,26 @@ jobs:
           name: WebGL-Template
           path: WebGL
 
-      - name: cache Library
-        uses: actions/cache@v3
-        with:
-          path: Library
-          key: Library-${{ matrix.targetPlatform }}
-          restore-keys: Library-${{ matrix.targetPlatform }}
-
-      - name: build project for ${{ matrix.targetPlatform }}
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+#      - name: cache Library
+#        uses: actions/cache@v3
+#        with:
+#          path: Library
+#          key: Library-${{ matrix.targetPlatform }}
+#          restore-keys: Library-${{ matrix.targetPlatform }}
+#
+#      - name: build project for ${{ matrix.targetPlatform }}
+#        uses: game-ci/unity-builder@v4
+#        env:
+#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#        with:
+#          targetPlatform: ${{ matrix.targetPlatform }}
+      
+      - name: fake build
+        run: |
+          mkdir -p build/${{ matrix.targetPlatform }}
+          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/README.md
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
