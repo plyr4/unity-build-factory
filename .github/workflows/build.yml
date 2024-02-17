@@ -7,7 +7,12 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
-      # todo: support different source branch
+        
+      ref:
+        type: string
+        description: ref to use when cloning the project. default is the head ref of the target repository
+        required: false
+
       deploy-to-pages:
         type: boolean
         description: deploy to gh-pages branch for <owner>/<repo> after build
