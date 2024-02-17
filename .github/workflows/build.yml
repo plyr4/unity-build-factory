@@ -1,9 +1,8 @@
 name: build <unity project name>
 
 on:
-  push:
-    branches:
-      - '*'
+  deployment:
+    types: [created]
 
 permissions:
   contents: write
@@ -18,19 +17,20 @@ jobs:
   build:
     name: ${{ matrix.targetPlatform }} build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - StandaloneWindows64
-          - StandaloneLinux64
-          - WebGL
-    outputs:
-      release: ${{ steps.release.outputs.test }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        targetPlatform:
+#          - StandaloneWindows64
+#          - StandaloneLinux64
+#          - WebGL
+#    outputs:
+#      release: ${{ steps.release.outputs.test }}
     steps:
-      - name: clone project
+      - name: clone remote project
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.deployment.target }}
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
