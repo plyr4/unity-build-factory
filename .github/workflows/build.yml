@@ -76,8 +76,8 @@ jobs:
       
       - name: fake build
         run: |
-          mkdir -p build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}
-          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/index.html
+          mkdir -p build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build
+          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build/index.html
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
