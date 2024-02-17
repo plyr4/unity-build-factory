@@ -168,8 +168,8 @@ jobs:
           
       - name: commit static site
         run: |
-          git config --global user.email ${{ github.actor }}
-          git config --global user.name ${{ secrets.UNITY_USERNAME }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           git add .
           git commit -m "publishing static site"
 
