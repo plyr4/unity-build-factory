@@ -133,7 +133,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: clear existing content
-        run: find . -path ./.git -prune -o -exec rm -rf {} \; 2> /dev/null
+        run: git rm -r .
 
       - name: download webgl build
         uses: actions/download-artifact@v4
