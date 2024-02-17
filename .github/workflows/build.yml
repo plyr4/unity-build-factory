@@ -38,7 +38,15 @@ jobs:
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
-
+          
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+          
       - name: upload webgl template
         uses: actions/upload-artifact@v3
         if: matrix.targetPlatform == 'WebGL' && startsWith(github.ref, 'refs/tags/v')
