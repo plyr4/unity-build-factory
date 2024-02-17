@@ -7,11 +7,12 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
+      # todo: support different source branch
       deploy-to-pages:
         type: boolean
         description: deploy to gh-pages branch for <owner>/<repo> after build
         default: true
-
+      
 permissions:
   contents: write
   pages: write
@@ -140,6 +141,13 @@ jobs:
         with:
           name: WebGL-Template
           path: .
+          
+      - name: clone target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          ref: gh-pages
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: get commit hash
         id: get-commit
@@ -150,6 +158,8 @@ jobs:
         env:
           LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).uploads.StandaloneLinux64[0] }}
           WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).uploads.StandaloneWindows64[0] }}
+          
+          # todo: pull these from the head ref of the target repository that was just cloned
           BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
           BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         with:
@@ -159,7 +169,7 @@ jobs:
       - name: commit static site
         run: |
           git add .
-          git commit -m "publishing static site to gh-pages"
+          git commit -m "publishing static site"
 
       - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
         uses: ad-m/github-push-action@master
