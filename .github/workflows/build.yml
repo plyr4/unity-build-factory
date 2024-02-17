@@ -47,7 +47,93 @@ jobs:
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
-          
+
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+
+      - name: upload webgl template
+        uses: actions/upload-artifact@v4
+        if: matrix.targetPlatform == 'WebGL'
+        with:
+          name: WebGL-Template
+          path: WebGL
+
+      - name: cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: Library-${{ matrix.targetPlatform }}
+
+      - name: build project for ${{ matrix.targetPlatform }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+
+      - name: upload ${{ matrix.targetPlatform }} build
+        uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+
+      - name: archive ${{ matrix.targetPlatform }} release
+        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
+
+      - name: publish ${{ matrix.targetPlatform }} pre-release
+        uses: softprops/action-gh-release@v1
+        id: release
+        with:
+          prerelease: true
+          name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+          tag_name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
+          fail_on_unmatched_files: true
+      - name: checkoutputs
+        run: echo "${{ steps.release.outputs.assets }}"
+        
+      - name: write matrix outputs
+        uses: cloudposse/github-action-matrix-outputs-write@main
+        id: out
+        with:
+          matrix-step-name: release
+          matrix-key: ${{ matrix.targetPlatform }}
+          outputs: |-
+            releases: ${{ steps.release.outputs.assets }}
+
+  read:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
+    steps:
+      - name: read matrix outputs
+        uses: cloudposse/github-action-matrix-outputs-read@main
+        id: read
+        with:
+          matrix-step-name: release
+    outputs:
+      result: ${{ steps.read.outputs.result }}
+
+  deploy:
+    needs: read
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
+    steps:
+      - name: clone target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          ref: gh-pages
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: clear existing content
         run: |
@@ -55,152 +141,58 @@ jobs:
           rm -rf *
           mv ../.git .git
 
-#
-#      - name: free disk space
-#        run: |
-#          sudo swapoff -a
-#          sudo rm -f /swapfile
-#          sudo apt clean
-#          docker rmi $(docker image ls -aq)
-#          df -h
-#
-#      - name: upload webgl template
-#        uses: actions/upload-artifact@v4
-#        if: matrix.targetPlatform == 'WebGL'
-#        with:
-#          name: WebGL-Template
-#          path: WebGL
-#
-#      - name: cache Library
-#        uses: actions/cache@v3
-#        with:
-#          path: Library
-#          key: Library-${{ matrix.targetPlatform }}
-#          restore-keys: Library-${{ matrix.targetPlatform }}
-#
-#      - name: build project for ${{ matrix.targetPlatform }}
-#        uses: game-ci/unity-builder@v4
-#        env:
-#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-#        with:
-#          targetPlatform: ${{ matrix.targetPlatform }}
-#
-#      - name: upload ${{ matrix.targetPlatform }} build
-#        uses: actions/upload-artifact@v4
-#        id: upload
-#        with:
-#          name: Build-${{ matrix.targetPlatform }}
-#          path: build/${{ matrix.targetPlatform }}
-#
-#      - name: archive ${{ matrix.targetPlatform }} release
-#        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
-#
-#      - name: publish ${{ matrix.targetPlatform }} pre-release
-#        uses: softprops/action-gh-release@v1
-#        id: release
-#        with:
-#          prerelease: true
-#          name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-#          tag_name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-#          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
-#          fail_on_unmatched_files: true
-#      - name: checkoutputs
-#        run: echo "${{ steps.release.outputs.assets }}"
-#        
-#      - name: write matrix outputs
-#        uses: cloudposse/github-action-matrix-outputs-write@main
-#        id: out
-#        with:
-#          matrix-step-name: release
-#          matrix-key: ${{ matrix.targetPlatform }}
-#          outputs: |-
-#            releases: ${{ steps.release.outputs.assets }}
-#
-#  read:
-#    runs-on: ubuntu-latest
-#    needs: build
-#    if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
-#    steps:
-#      - name: read matrix outputs
-#        uses: cloudposse/github-action-matrix-outputs-read@main
-#        id: read
-#        with:
-#          matrix-step-name: release
-#    outputs:
-#      result: ${{ steps.read.outputs.result }}
-#
-#  deploy:
-#    needs: read
-#    runs-on: ubuntu-latest
-#    if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
-#    steps:
-#      - name: clone target repository
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ${{ github.event.inputs.repository }}
-#          ref: gh-pages
-#          token: ${{ secrets.PAT_TOKEN }}
-#
-#      - name: clear existing content
-#        run: |
-#          mv .git ../.git
-#          rm -rf *
-#          mv ../.git .git
-#
-#      - name: download webgl build
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: Build-WebGL
-#          path: .
-#
-#      - name: unpack webgl build
-#        run: |
-#          ls -lar .
-#          ls -lar WebGL
-#          cp -r WebGL/Build .
-#          rm -rf WebGL
-#
-#      - name: download webgl template
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: WebGL-Template
-#          path: .
-#
-#      - name: get commit hash
-#        id: get-commit
-#        uses: pr-mpt/actions-commit-hash@v2
-#
-#      - name: checkoutputs
-#        run: echo "${{  needs.read.outputs.result  }}"
-#
-#      - name: checkoutputs
-#        run: echo "${{ fromJson(needs.read.outputs.result) }}"
-#
-#      - name: substitute env on index.html
-#        uses: danielr1996/envsubst-action@1.1.0
-#        env:
-#          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
-#          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
-#
-#          # todo: pull these from the head ref of the target repository that was just cloned
-#          BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
-#          BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-#        with:
-#          input: ./index.html
-#          output: ./index.html
-#
-#      - name: commit static site
-#        run: |
-#          git config user.name github-actions
-#          git config user.email github-actions@github.com
-#          git add .
-#          git commit -m "publishing static site"
-#
-#      - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
-#        uses: ad-m/github-push-action@master
-#        with:
-#          repository: ${{ github.event.inputs.repository }}
-#          branch: gh-pages
-#          github_token: ${{ secrets.PAT_TOKEN }}
+      - name: download webgl build
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-WebGL
+          path: .
+
+      - name: unpack webgl build
+        run: |
+          ls -lar .
+          ls -lar WebGL
+          cp -r WebGL/Build .
+          rm -rf WebGL
+
+      - name: download webgl template
+        uses: actions/download-artifact@v4
+        with:
+          name: WebGL-Template
+          path: .
+
+      - name: get commit hash
+        id: get-commit
+        uses: pr-mpt/actions-commit-hash@v2
+
+      - name: checkoutputs
+        run: echo "${{  needs.read.outputs.result  }}"
+
+      - name: checkoutputs
+        run: echo "${{ fromJson(needs.read.outputs.result) }}"
+
+      - name: substitute env on index.html
+        uses: danielr1996/envsubst-action@1.1.0
+        env:
+          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
+          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
+
+          # todo: pull these from the head ref of the target repository that was just cloned
+          BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
+          BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        with:
+          input: ./index.html
+          output: ./index.html
+
+      - name: commit static site
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "publishing static site"
+
+      - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
+        uses: ad-m/github-push-action@master
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          branch: gh-pages
+          github_token: ${{ secrets.PAT_TOKEN }}
