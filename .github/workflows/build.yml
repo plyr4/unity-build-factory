@@ -1,0 +1,36 @@
+name: build <unity project name>
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.targetPlatform }} build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneWindows64
+          - StandaloneLinux64
+          - WebGL
+    outputs:
+      release: ${{ steps.release.outputs.test }}
+    steps:
+      - name: clone project
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
