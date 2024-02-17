@@ -89,7 +89,16 @@ jobs:
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
-          
+
+      - name: create pre-release for public download url
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          name: nightly
+          tag_name: nightly
+          files: build/${{ matrix.targetPlatform }}
+          fail_on_unmatched_files: true
+
       - name: check outputs
         run: |
           echo "artifact-url: ${{ steps.upload.outputs.artifact-url }}"
