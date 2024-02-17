@@ -2,6 +2,10 @@
 
 This project contains reusable workflows for compiling and building multiarchitecture Unity projects using [GitHub Actions](https://docs.github.com/en/actions) and [GameCI](https://game.ci/docs/github/getting-started/).
 
+## Usage
+
+Clone this repository, configure repository secrets, enable Actions, trigger a deployment using <github project url> as the deployment target.
+
 ## Contact
 
 Open an issue at <https://github.com/plyr4/unity-factory/issues>

@@ -2,7 +2,7 @@ name: build <unity project name>
 
 on:
   push:
-    tags:
+    branches:
       - '*'
 
 permissions:
