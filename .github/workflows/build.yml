@@ -42,46 +42,42 @@ jobs:
       - name: clone project
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.inputs.ref || '' }}
           repository: ${{ github.event.inputs.repository }}
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-#      - name: free disk space
-#        run: |
-#          sudo swapoff -a
-#          sudo rm -f /swapfile
-#          sudo apt clean
-#          docker rmi $(docker image ls -aq)
-#          df -h
-#
+      - name: free disk space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          docker rmi $(docker image ls -aq)
+          df -h
+
       - name: upload webgl template
         uses: actions/upload-artifact@v4
         if: matrix.targetPlatform == 'WebGL'
         with:
           name: WebGL-Template
           path: WebGL
-#
-#      - name: cache Library
-#        uses: actions/cache@v3
-#        with:
-#          path: Library
-#          key: Library-${{ matrix.targetPlatform }}
-#          restore-keys: Library-${{ matrix.targetPlatform }}
-#
-#      - name: build project for ${{ matrix.targetPlatform }}
-#        uses: game-ci/unity-builder@v4
-#        env:
-#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-#        with:
-#          targetPlatform: ${{ matrix.targetPlatform }}
 
-      - name: fake build
-        run: |
-          mkdir -p build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build
-          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build/index.html
+      - name: cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: Library-${{ matrix.targetPlatform }}
+
+      - name: build project for ${{ matrix.targetPlatform }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
