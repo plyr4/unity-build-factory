@@ -7,7 +7,7 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
-        
+      
       ref:
         type: string
         description: ref to use when cloning the project. default is the head ref of the target repository
@@ -17,7 +17,7 @@ on:
         type: boolean
         description: deploy to gh-pages branch for <owner>/<repo> after build
         default: true
-      
+
 permissions:
   contents: write
   pages: write
@@ -112,6 +112,13 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
     steps:
+      - name: clone target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          ref: gh-pages
+          token: ${{ secrets.PAT_TOKEN }}
+
       - name: download webgl build
         uses: actions/download-artifact@v4
         with:
@@ -130,13 +137,6 @@ jobs:
         with:
           name: WebGL-Template
           path: .
-          
-      - name: clone target repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.event.inputs.repository }}
-          ref: gh-pages
-          token: ${{ secrets.PAT_TOKEN }}
 
       - name: get commit hash
         id: get-commit
@@ -154,7 +154,7 @@ jobs:
         with:
           input: ./index.html
           output: ./index.html
-          
+
       - name: commit static site
         run: |
           git config user.name github-actions
