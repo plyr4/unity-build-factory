@@ -55,12 +55,12 @@ jobs:
 #          docker rmi $(docker image ls -aq)
 #          df -h
 #
-#      - name: upload webgl template
-#        uses: actions/upload-artifact@v4
-#        if: matrix.targetPlatform == 'WebGL'
-#        with:
-#          name: WebGL-Template
-#          path: WebGL
+      - name: upload webgl template
+        uses: actions/upload-artifact@v4
+        if: matrix.targetPlatform == 'WebGL'
+        with:
+          name: WebGL-Template
+          path: WebGL
 #
 #      - name: cache Library
 #        uses: actions/cache@v3
