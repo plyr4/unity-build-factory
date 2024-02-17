@@ -112,10 +112,43 @@ jobs:
       result: ${{ steps.read.outputs.result }}
 
   deploy:
+    needs: read
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      # push the static webgl stuff we just prepared to the gh-pages branch on <owner>/<repo>
+      - name: download webgl build
+        uses: actions/download-artifact@v3
+        with:
+          name: Build-WebGL
+          path: .
+
+      - name: unpack webgl build
+        run: |
+          ls -lar .
+          ls -lar WebGL
+          cp -r WebGL/Build .
+          rm -rf WebGL
+
+      - name: download webgl template
+        uses: actions/download-artifact@v3
+        with:
+          name: WebGL-Template
+          path: .
+
+      - name: get commit hash
+        id: get-commit
+        uses: pr-mpt/actions-commit-hash@v2
+
+      - name: substitute env on index.html
+        uses: danielr1996/envsubst-action@1.1.0
+        env:
+          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
+          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
+          BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
+          BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        with:
+          input: ./index.html
+          output: ./index.html
+          
       - name: commit static site
         run: |
           git add .
@@ -127,61 +160,3 @@ jobs:
           repository: ${{ github.event.inputs.project_path }}
           branch: gh-pages
           github_token: ${{ secrets.PAT_TOKEN }}
-
-
-
-
-
-
-#    needs: read
-#    runs-on: ubuntu-latest
-#    if: startsWith(github.ref, 'refs/tags/v')
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#    steps:
-#      - name: download webgl build
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Build-WebGL
-#          path: .
-#
-#      - name: unpack webgl build
-#        run: |
-#          ls -lar .
-#          ls -lar WebGL
-#          cp -r WebGL/Build .
-#          rm -rf WebGL
-#
-#      - name: download webgl template
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: WebGL-Template
-#          path: .
-#
-#      - name: get commit hash
-#        id: get-commit
-#        uses: pr-mpt/actions-commit-hash@v2
-#
-#      - name: substitute env on index.html
-#        uses: danielr1996/envsubst-action@1.1.0
-#        env:
-#          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
-#          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
-#          BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
-#          BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-#        with:
-#          input: ./index.html
-#          output: ./index.html
-#
-#      - name: configure pages
-#        uses: actions/configure-pages@v2
-#
-#      - name: upload pages build artifact
-#        uses: actions/upload-pages-artifact@v1
-#        with:
-#          path: .
-#
-#      - name: deploy pages
-#        id: deployment
-#        uses: actions/deploy-pages@v1
