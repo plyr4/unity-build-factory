@@ -90,19 +90,26 @@ jobs:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
-      - name: create pre-release for public download url
+
+      - name: archive ${{ matrix.targetPlatform }} release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
+
+      - name: publish ${{ matrix.targetPlatform }} pre-release
         uses: softprops/action-gh-release@v1
+        id: release
         with:
           prerelease: true
-          name: nightly
-          tag_name: nightly
-          files: build/${{ matrix.targetPlatform }}/
+          name: nightly-${{ matrix.targetPlatform }}
+          tag_name: nightly-${{ matrix.targetPlatform }}
+          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
 
       - name: check outputs
         run: |
           echo "artifact-url: ${{ steps.upload.outputs.artifact-url }}"
+          echo "release-download-url: ${{ steps.release.outputs.browser_download_url }}"
 #          echo "::set-output name=artifact-url::${{ steps.upload.outputs.artifact-url }}"
-          
+
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
         id: out
