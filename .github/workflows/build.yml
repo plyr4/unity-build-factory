@@ -1,8 +1,12 @@
 name: build <unity project name>
 
 on:
-  deployment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      name:
+        type: string
+        description: github project to build
+        required: true
 
 permissions:
   contents: write
