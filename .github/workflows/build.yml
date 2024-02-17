@@ -96,8 +96,7 @@ jobs:
           prerelease: true
           name: nightly
           tag_name: nightly
-          files: build/${{ matrix.targetPlatform }}
-          fail_on_unmatched_files: true
+          files: build/${{ matrix.targetPlatform }}/
 
       - name: check outputs
         run: |
