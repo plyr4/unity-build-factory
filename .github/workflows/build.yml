@@ -3,9 +3,9 @@ name: build <unity project name>
 on:
   workflow_dispatch:
     inputs:
-      name:
+      project_path:
         type: string
-        description: github project to build
+        description: path to github project in format `<owner>/<repo>`
         required: true
 
 permissions:
@@ -34,7 +34,7 @@ jobs:
       - name: clone remote project
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.deployment.target }}
+          repository: ${{ github.event.inputs.project_path }}
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
