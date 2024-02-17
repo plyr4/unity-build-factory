@@ -1,10 +1,28 @@
 # Unity Factory
 
-This project contains reusable workflows for compiling and building multiarchitecture Unity projects using [GitHub Actions](https://docs.github.com/en/actions) and [GameCI](https://game.ci/docs/github/getting-started/).
+This project contains a workflow for compiling and building multi-architecture Unity projects using [GitHub Actions](https://docs.github.com/en/actions) and [GameCI](https://game.ci/docs/github/getting-started/).
 
 ## Usage
 
-Clone this repository, configure repository secrets, enable Actions, trigger a deployment using <github project url> as the deployment target.
+1. Have a GitHub repository containing a Unity project.
+1. Fork this repository and enable [Actions](https://docs.github.com/en/actions).
+1. Review [GameCI](https://game.ci/docs/github/getting-started/) and add the following GitHub repository secrets to your fork:
+   - `UNITY_EMAIL`
+   - `UNITY_PASSWORD`
+   - `UNITY_LICENSE`
+1. Create a GitHub Personal Access Token with read/write access to the target Unity project repository and add `PAT_TOKEN` to GitHub repository secrets.
+1. Find the Actions workflow for  `project builder` and select `Run workflow` 
+   1. enter the `<owner>/<repo>` corresponding to the target Unity project repository
+   1. toggle `deploy-to-pages` to enable pushing to `gh-pages` branch of the target repo
+   1. run the workflow
+
+By default the workflow will compile and build the Unity project for the following platforms:
+- Windows
+- Linux
+- WebGL
+- *console support coming soon?*
+
+The workflow will likely take a long time to complete on the first run, but caching should speed up subsequent runs of the same project.
 
 ## Contact
 
