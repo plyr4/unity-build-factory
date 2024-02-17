@@ -47,36 +47,41 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: free disk space
+#      - name: free disk space
+#        run: |
+#          sudo swapoff -a
+#          sudo rm -f /swapfile
+#          sudo apt clean
+#          docker rmi $(docker image ls -aq)
+#          df -h
+#
+#      - name: upload webgl template
+#        uses: actions/upload-artifact@v4
+#        if: matrix.targetPlatform == 'WebGL'
+#        with:
+#          name: WebGL-Template
+#          path: WebGL
+#
+#      - name: cache Library
+#        uses: actions/cache@v3
+#        with:
+#          path: Library
+#          key: Library-${{ matrix.targetPlatform }}
+#          restore-keys: Library-${{ matrix.targetPlatform }}
+#
+#      - name: build project for ${{ matrix.targetPlatform }}
+#        uses: game-ci/unity-builder@v4
+#        env:
+#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+#        with:
+#          targetPlatform: ${{ matrix.targetPlatform }}
+
+      - name: fake build
         run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
-          df -h
-
-      - name: upload webgl template
-        uses: actions/upload-artifact@v4
-        if: matrix.targetPlatform == 'WebGL'
-        with:
-          name: WebGL-Template
-          path: WebGL
-
-      - name: cache Library
-        uses: actions/cache@v3
-        with:
-          path: Library
-          key: Library-${{ matrix.targetPlatform }}
-          restore-keys: Library-${{ matrix.targetPlatform }}
-
-      - name: build project for ${{ matrix.targetPlatform }}
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+          mkdir -p build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build
+          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build/index.html
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
@@ -98,6 +103,9 @@ jobs:
           tag_name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
           files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
 
+      - name: checkoutputs
+        run: echo "${{ steps.release.outputs.assets }}"
+        
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
         id: out
@@ -157,6 +165,12 @@ jobs:
       - name: get commit hash
         id: get-commit
         uses: pr-mpt/actions-commit-hash@v2
+
+      - name: checkoutputs
+        run: echo "${{  needs.read.outputs.result  }}"
+
+      - name: checkoutputs
+        run: echo "${{ fromJson(needs.read.outputs.result) }}"
 
       - name: substitute env on index.html
         uses: danielr1996/envsubst-action@1.1.0
