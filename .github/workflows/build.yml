@@ -35,11 +35,9 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-#          - StandaloneWindows64
-#          - StandaloneLinux64
+          - StandaloneWindows64
+          - StandaloneLinux64
           - WebGL
-#    outputs:
-#      release: ${{ steps.release.outputs.test }}
     steps:
       - name: clone project
         uses: actions/checkout@v4
@@ -64,26 +62,21 @@ jobs:
           name: WebGL-Template
           path: WebGL
 
-#      - name: cache Library
-#        uses: actions/cache@v3
-#        with:
-#          path: Library
-#          key: Library-${{ matrix.targetPlatform }}
-#          restore-keys: Library-${{ matrix.targetPlatform }}
-#
-#      - name: build project for ${{ matrix.targetPlatform }}
-#        uses: game-ci/unity-builder@v4
-#        env:
-#          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-#          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-#          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-#        with:
-#          targetPlatform: ${{ matrix.targetPlatform }}
-      
-      - name: fake build
-        run: |
-          mkdir -p build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build
-          echo "fake build for ${{ matrix.targetPlatform }}" > build/${{ matrix.targetPlatform }}/${{ matrix.targetPlatform }}/Build/index.html
+      - name: cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: Library-${{ matrix.targetPlatform }}
+
+      - name: build project for ${{ matrix.targetPlatform }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
@@ -91,15 +84,6 @@ jobs:
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
-
-#      - name: archive ${{ matrix.targetPlatform }} release
-#        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
-#
-#      - name: publish ${{ matrix.targetPlatform }} release
-#        uses: softprops/action-gh-release@v1
-#        id: release
-#        with:
-#          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
 
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
