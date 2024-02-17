@@ -32,8 +32,8 @@ jobs:
           - StandaloneWindows64
           - StandaloneLinux64
           - WebGL
-    outputs:
-      release: ${{ steps.release.outputs.test }}
+#    outputs:
+#      release: ${{ steps.release.outputs.test }}
     steps:
       - name: clone project
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           df -h
 
       - name: upload webgl template
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.targetPlatform == 'WebGL'
         with:
           name: WebGL-Template
@@ -75,28 +75,29 @@ jobs:
           targetPlatform: ${{ matrix.targetPlatform }}
 
       - name: upload ${{ matrix.targetPlatform }} build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
-      - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
-
-      - name: publish ${{ matrix.targetPlatform }} release
-        uses: softprops/action-gh-release@v1
-        id: release
-        with:
-          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
+#      - name: archive ${{ matrix.targetPlatform }} release
+#        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
+#
+#      - name: publish ${{ matrix.targetPlatform }} release
+#        uses: softprops/action-gh-release@v1
+#        id: release
+#        with:
+#          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
 
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
         id: out
         with:
-          matrix-step-name: release
+          matrix-step-name: upload
           matrix-key: ${{ matrix.targetPlatform }}
           outputs: |-
-            releases: ${{ steps.release.outputs.assets }}
+            uploads: ${{ steps.upload.outputs.artifact-url }}
 
   read:
     runs-on: ubuntu-latest
@@ -107,7 +108,7 @@ jobs:
         uses: cloudposse/github-action-matrix-outputs-read@main
         id: read
         with:
-          matrix-step-name: release
+          matrix-step-name: upload
     outputs:
       result: ${{ steps.read.outputs.result }}
 
@@ -142,8 +143,8 @@ jobs:
       - name: substitute env on index.html
         uses: danielr1996/envsubst-action@1.1.0
         env:
-          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
-          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
+          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).uploads.StandaloneLinux64[0] }}
+          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).uploads.StandaloneWindows64[0] }}
           BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
           BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         with:
@@ -155,9 +156,9 @@ jobs:
           git add .
           git commit -m "publishing static site to gh-pages"
 
-      - name: push static site to ${{ github.event.inputs.project_path }} on gh-pages
+      - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
         uses: ad-m/github-push-action@master
         with:
-          repository: ${{ github.event.inputs.project_path }}
+          repository: ${{ github.event.inputs.repository }}
           branch: gh-pages
           github_token: ${{ secrets.PAT_TOKEN }}
