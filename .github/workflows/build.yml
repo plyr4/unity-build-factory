@@ -123,7 +123,7 @@ jobs:
     if: ${{ github.event.inputs.deploy-to-pages == 'true' }}
     steps:
       - name: download webgl build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: Build-WebGL
           path: .
@@ -136,7 +136,7 @@ jobs:
           rm -rf WebGL
 
       - name: download webgl template
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: WebGL-Template
           path: .
