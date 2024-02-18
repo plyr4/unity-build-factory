@@ -17,6 +17,12 @@ on:
         type: boolean
         description: deploy to gh-pages branch for <owner>/<repo> after build
         default: true
+      
+      pages-deploy-branch:
+        type: string
+        description: branch to use when deploying to pages. default is gh-pages
+        required: false
+        default: gh-pages
 
 permissions:
   contents: write
@@ -87,19 +93,17 @@ jobs:
           path: build/${{ matrix.targetPlatform }}
 
       - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip .
+        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ matrix.targetPlatform }}.zip .
 
       - name: publish ${{ matrix.targetPlatform }} pre-release
         uses: softprops/action-gh-release@v1
         id: release
         with:
           prerelease: true
-          name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-          tag_name: nightly-${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-          files: neebo-${{ github.ref_name }}-${{ matrix.targetPlatform }}.zip
+          name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+          tag_name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+          files: neebo-${{ matrix.targetPlatform }}.zip
           fail_on_unmatched_files: true
-      - name: checkoutputs
-        run: echo "${{ steps.release.outputs.assets }}"
         
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
@@ -164,12 +168,6 @@ jobs:
         id: get-commit
         uses: pr-mpt/actions-commit-hash@v2
 
-      - name: checkoutputs
-        run: echo "${{  needs.read.outputs.result  }}"
-
-      - name: checkoutputs
-        run: echo "${{ fromJson(needs.read.outputs.result) }}"
-
       - name: substitute env on index.html
         uses: danielr1996/envsubst-action@1.1.0
         env:
@@ -194,5 +192,5 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           repository: ${{ github.event.inputs.repository }}
-          branch: gh-pages
+          branch: ${{ github.event.inputs.pages-deploy-branch || 'gh-pages' }}
           github_token: ${{ secrets.PAT_TOKEN }}
