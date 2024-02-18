@@ -1,7 +1,7 @@
 # Unity Build Factory
 
 Unity Build Factory is a workflow for building and deploying multi-architecture Unity projects using [GitHub Actions](https://docs.github.com/en/actions) and [GameCI](https://game.ci/docs/github/getting-started/).
-It was created to unify the repetitive build process for multiple projects and also simplify a way to deploy to private GitHub Pages repositories with build artifacts that can be download by unauthenticated Pages visitors.
+It was created to unify the repetitive build process for multiple projects and simplify deploying to GitHub Pages for private repositories with build artifacts that can be download by unauthenticated visitors.
 
 By default the workflow will compile and build the Unity project for the following platforms:
 - Windows
@@ -12,6 +12,8 @@ By default the workflow will compile and build the Unity project for the followi
 It is capable of deploying the build artifacts to the following platforms:
 - GitHub Pages
 - _**steam support coming**_
+
+I'm currently using Unity Build Factory to rapidly deploy demos for a few of my projects, like [Neebo](https://plyr4.github.io/unity-ufo/).
 
 ## Usage
 
