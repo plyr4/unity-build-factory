@@ -1,5 +1,7 @@
 # Unity Build Factory
 
+[![project builder](https://github.com/plyr4/unity-build-factory/actions/workflows/build.yml/badge.svg)](https://github.com/plyr4/unity-build-factory/actions/workflows/build.yml)
+
 Unity Build Factory is a workflow for building and deploying multi-architecture Unity projects using [GitHub Actions](https://docs.github.com/en/actions) and [GameCI](https://game.ci/docs/github/getting-started/).
 It was created to unify the repetitive build process for multiple projects and simplify deploying to GitHub Pages for private repositories with build artifacts that can be download by unauthenticated visitors.
 
