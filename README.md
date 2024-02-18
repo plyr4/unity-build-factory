@@ -33,11 +33,13 @@ I'm currently using Unity Build Factory to rapidly deploy demos for a few of my 
    1. (optional) toggle `deploy-to-pages` and set the `pages-deploy-branch`
    1. run the workflow
 
-The workflow will likely take a long time to finish building the project on the first run but caching will speed up subsequent runs of the same project.
+Each project will likely take a long time to finish building on the first run but caching will speed up subsequent runs.
+
+> Be wary of GitHub Actions billing, as the Unity Build Factory workflow can consume a lot of minutes and Artifact storage space if you have a lot of projects or are building frequently.
 
 ### Artifacts
 
-The workflow will create a pre-release for each platform and attach the corresponding corresponding build that was produced in Actions. The pre-releases are updated with each run as to not clutter the repository with tags while testing and deploying numerous builds.
+The workflow will create a pre-release for each platform and attach the corresponding build that was produced in Actions. The pre-releases are updated with each run as to not clutter the repository with tags while testing and deploying numerous builds.
 
 To download the built artifacts simply navigate to the releases section of the target repository and download the artifacts from the pre-release that corresponds to the platform you want to download.
 
