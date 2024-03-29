@@ -135,8 +135,8 @@ jobs:
           matrix-step-name: release
     outputs:
       result: ${{ steps.read.outputs.result }}
-      commit_hash: ${{ steps.read.outputs.commit_hash }}
-      commit_message: ${{ steps.read.outputs.commit_message }}
+      commit_hash: "${{ steps.read.outputs.commit_hash }}"
+      commit_message: "${{ steps.read.outputs.commit_message }}"
 
   deploy:
     needs: read
@@ -177,8 +177,8 @@ jobs:
 
       - name: check env 
         run: |
-          echo "${{ fromJson(needs.read.outputs.result).commit_hash.StandaloneLinux64 }}"
-          echo "${{ fromJson(needs.read.outputs.result).commit_message.StandaloneLinux64 }}"
+          echo "${{ fromJson(needs.read.outputs.result).commit_hash.WebGL }}"
+          echo "${{ fromJson(needs.read.outputs.result).commit_message.WebGL }}"
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
