@@ -59,6 +59,7 @@ jobs:
         run: |
           echo "{commit_message}={$(git log -1 --pretty=%B)}" >> $GITHUB_OUTPUT
           echo "{commit_hash}={$(git rev-parse --short HEAD)}" >> $GITHUB_OUTPUT
+          echo "{foo}={bar}" >> $GITHUB_OUTPUT
 
       # - name: free disk space
       #   run: |
@@ -119,6 +120,7 @@ jobs:
           matrix-key: ${{ matrix.targetPlatform }}
           outputs: |-
             releases: ${{ steps.release.outputs.assets }}
+            git: ${{ steps.git.outputs.foo }}
 
   read:
     runs-on: ubuntu-latest
@@ -172,8 +174,7 @@ jobs:
 
       - name: check env 
         run: |
-          echo ${{ steps.git.outputs.commit_hash }}
-          echo ${{ steps.git.outputs.commit_message }}
+          echo ${{ fromJson(needs.read.outputs.result).git.StandaloneWindows64.foo }}
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
