@@ -174,7 +174,8 @@ jobs:
 
       - name: check env 
         run: |
-          echo ${{ fromJson(needs.read.outputs.result).git.StandaloneWindows64.foo }}
+          echo ${{ fromJson(needs.read.outputs.result) }}
+          echo ${{ steps.git.outputs.foo }}
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
