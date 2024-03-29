@@ -57,9 +57,9 @@ jobs:
       - name: write git info
         id: git
         run: |
-          echo "{commit_message}={$(git log -1 --pretty=%B)}" >> $GITHUB_OUTPUT
-          echo "{commit_hash}={$(git rev-parse --short HEAD)}" >> $GITHUB_OUTPUT
-          echo "{foo}={bar}" >> $GITHUB_OUTPUT
+          echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
+          echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "foo=bar" >> $GITHUB_OUTPUT
 
       # - name: free disk space
       #   run: |
