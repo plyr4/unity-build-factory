@@ -57,59 +57,59 @@ jobs:
       - name: write git info
         id: git
         run: |
-          echo ::set-output name=commit_message::$(git log -1 --pretty=%B)
-          echo ::set-output name=commit_hash::$(git rev-parse --short HEAD)
+          echo "{commit_message}={$(git log -1 --pretty=%B)}" >> $GITHUB_OUTPUT
+          echo "{commit_hash}={$(git rev-parse --short HEAD)}" >> $GITHUB_OUTPUT
 
-      - name: free disk space
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
-          df -h
+      # - name: free disk space
+      #   run: |
+      #     sudo swapoff -a
+      #     sudo rm -f /swapfile
+      #     sudo apt clean
+      #     docker rmi $(docker image ls -aq)
+      #     df -h
 
-      - name: upload webgl template
-        uses: actions/upload-artifact@v4
-        if: matrix.targetPlatform == 'WebGL'
-        with:
-          name: WebGL-Template
-          path: WebGL
+      # - name: upload webgl template
+      #   uses: actions/upload-artifact@v4
+      #   if: matrix.targetPlatform == 'WebGL'
+      #   with:
+      #     name: WebGL-Template
+      #     path: WebGL
 
-      - name: cache Library
-        uses: actions/cache@v3
-        with:
-          path: Library
-          key: Library-${{ matrix.targetPlatform }}
-          restore-keys: Library-${{ matrix.targetPlatform }}
+      # - name: cache Library
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: Library
+      #     key: Library-${{ matrix.targetPlatform }}
+      #     restore-keys: Library-${{ matrix.targetPlatform }}
 
-      - name: build project for ${{ matrix.targetPlatform }}
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+      # - name: build project for ${{ matrix.targetPlatform }}
+      #   uses: game-ci/unity-builder@v4
+      #   env:
+      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      #     UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      #     UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      #   with:
+      #     targetPlatform: ${{ matrix.targetPlatform }}
 
-      - name: upload ${{ matrix.targetPlatform }} build
-        uses: actions/upload-artifact@v4
-        id: upload
-        with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+      # - name: upload ${{ matrix.targetPlatform }} build
+      #   uses: actions/upload-artifact@v4
+      #   id: upload
+      #   with:
+      #     name: Build-${{ matrix.targetPlatform }}
+      #     path: build/${{ matrix.targetPlatform }}
 
-      - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ matrix.targetPlatform }}.zip .
+      # - name: archive ${{ matrix.targetPlatform }} release
+      #   run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ matrix.targetPlatform }}.zip .
 
-      - name: publish ${{ matrix.targetPlatform }} pre-release
-        uses: softprops/action-gh-release@v1
-        id: release
-        with:
-          prerelease: true
-          name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-          tag_name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-          files: neebo-${{ matrix.targetPlatform }}.zip
-          fail_on_unmatched_files: true
+      # - name: publish ${{ matrix.targetPlatform }} pre-release
+      #   uses: softprops/action-gh-release@v1
+      #   id: release
+      #   with:
+      #     prerelease: true
+      #     name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+      #     tag_name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
+      #     files: neebo-${{ matrix.targetPlatform }}.zip
+      #     fail_on_unmatched_files: true
 
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
@@ -145,52 +145,57 @@ jobs:
           ref: gh-pages
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: clear existing content
+      # - name: clear existing content
+      #   run: |
+      #     mv .git ../.git
+      #     rm -rf *
+      #     mv ../.git .git
+
+      # - name: download webgl build
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: Build-WebGL
+      #     path: .
+
+      # - name: unpack webgl build
+      #   run: |
+      #     ls -lar .
+      #     ls -lar WebGL
+      #     cp -r WebGL/Build .
+      #     rm -rf WebGL
+
+      # - name: download webgl template
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: WebGL-Template
+      #     path: .
+
+      - name: check env 
         run: |
-          mv .git ../.git
-          rm -rf *
-          mv ../.git .git
+          echo ${{ steps.git.outputs.commit_hash }}
+          echo ${{ steps.git.outputs.commit_message }}
 
-      - name: download webgl build
-        uses: actions/download-artifact@v4
-        with:
-          name: Build-WebGL
-          path: .
+      # - name: substitute env on index.html
+      #   uses: danielr1996/envsubst-action@1.1.0
+      #   env:
+      #     LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
+      #     WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
+      #     BUILD_COMMIT: ${{ steps.git.outputs.commit_hash }}
+      #     BUILD_COMMIT_MESSAGE: ${{ steps.git.outputs.commit_message }}
+      #   with:
+      #     input: ./index.html
+      #     output: ./index.html
 
-      - name: unpack webgl build
-        run: |
-          ls -lar .
-          ls -lar WebGL
-          cp -r WebGL/Build .
-          rm -rf WebGL
+      # - name: commit static site
+      #   run: |
+      #     git config user.name github-actions
+      #     git config user.email github-actions@github.com
+      #     git add .
+      #     git commit -m "publishing static site"
 
-      - name: download webgl template
-        uses: actions/download-artifact@v4
-        with:
-          name: WebGL-Template
-          path: .
-
-      - name: substitute env on index.html
-        uses: danielr1996/envsubst-action@1.1.0
-        env:
-          LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
-          WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
-          BUILD_COMMIT: ${{ steps.git.outputs.commit_hash }}
-          BUILD_COMMIT_MESSAGE: ${{ steps.git.outputs.commit_message }}
-        with:
-          input: ./index.html
-          output: ./index.html
-
-      - name: commit static site
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "publishing static site"
-
-      - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
-        uses: ad-m/github-push-action@master
-        with:
-          repository: ${{ github.event.inputs.repository }}
-          branch: ${{ github.event.inputs.pages-deploy-branch || 'gh-pages' }}
-          github_token: ${{ secrets.PAT_TOKEN }}
+      # - name: push static site to ${{ github.event.inputs.repository }} on gh-pages
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     repository: ${{ github.event.inputs.repository }}
+      #     branch: ${{ github.event.inputs.pages-deploy-branch || 'gh-pages' }}
+      #     github_token: ${{ secrets.PAT_TOKEN }}
