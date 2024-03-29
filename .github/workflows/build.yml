@@ -61,10 +61,7 @@ jobs:
           echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
           echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "foo=bar" >> $GITHUB_OUTPUT
-      - name: read git info
-        id: git-read
-        run: |
-          echo "${{ steps.git.outputs.foo }}"
+
       # - name: free disk space
       #   run: |
       #     sudo swapoff -a
@@ -124,7 +121,7 @@ jobs:
           matrix-key: ${{ matrix.targetPlatform }}
           outputs: |-
             releases: ${{ steps.release.outputs.assets }}
-            git: ${{ steps.git.outputs.foo }}
+            git: ${{ steps.git.outputs }}
 
   read:
     runs-on: ubuntu-latest
@@ -181,6 +178,8 @@ jobs:
         run: |
           echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64 }}"
           echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.foo }}"
+          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.commit_hash }}"
+          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.commit_message }}"
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
