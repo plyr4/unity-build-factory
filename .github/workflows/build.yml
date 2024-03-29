@@ -7,6 +7,7 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
+        default: plyr4/unity-ufo
 
       ref:
         type: string
@@ -60,7 +61,10 @@ jobs:
           echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
           echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "foo=bar" >> $GITHUB_OUTPUT
-
+      - name: read git info
+        id: git-read
+        run: |
+          echo "${{ steps.git.outputs.foo }}
       # - name: free disk space
       #   run: |
       #     sudo swapoff -a
@@ -176,7 +180,7 @@ jobs:
       - name: check env 
         run: |
           echo ${{ fromJson(needs.read.outputs.result).git }}
-          echo ${{ steps.git.outputs.foo }}
+          echo ${{ fromJson(needs.read.outputs.result).git.foo }}
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
