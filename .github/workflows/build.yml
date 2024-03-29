@@ -7,6 +7,7 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
+        default: plyr4/unity-ufo
 
       ref:
         type: string
@@ -57,8 +58,8 @@ jobs:
       - name: write git info
         id: git
         run: |
-          echo ::set-output name=commit_message::$(git log -1 --pretty=%B)
-          echo ::set-output name=commit_hash::$(git rev-parse --short HEAD)
+          echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
+          echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: free disk space
         run: |
@@ -119,6 +120,8 @@ jobs:
           matrix-key: ${{ matrix.targetPlatform }}
           outputs: |-
             releases: ${{ steps.release.outputs.assets }}
+            commit_hash: "${{ steps.git.outputs.commit_hash }}"
+            commit_message: "${{ steps.git.outputs.commit_message }}"
 
   read:
     runs-on: ubuntu-latest
@@ -132,6 +135,8 @@ jobs:
           matrix-step-name: release
     outputs:
       result: ${{ steps.read.outputs.result }}
+      commit_hash: "${{ steps.read.outputs.commit_hash }}"
+      commit_message: "${{ steps.read.outputs.commit_message }}"
 
   deploy:
     needs: read
@@ -175,8 +180,8 @@ jobs:
         env:
           LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
           WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
-          BUILD_COMMIT: ${{ steps.git.outputs.commit_hash }}
-          BUILD_COMMIT_MESSAGE: ${{ steps.git.outputs.commit_message }}
+          BUILD_COMMIT: "${{ fromJson(needs.read.outputs.result).commit_hash.WebGL }}"
+          BUILD_COMMIT_MESSAGE: "${{ fromJson(needs.read.outputs.result).commit_message.WebGL }}"
         with:
           input: ./index.html
           output: ./index.html
