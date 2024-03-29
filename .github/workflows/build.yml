@@ -64,7 +64,7 @@ jobs:
       - name: read git info
         id: git-read
         run: |
-          echo "${{ steps.git.outputs.foo }}
+          echo "${{ steps.git.outputs.foo }}"
       # - name: free disk space
       #   run: |
       #     sudo swapoff -a
@@ -179,8 +179,8 @@ jobs:
 
       - name: check env 
         run: |
-          echo ${{ fromJson(needs.read.outputs.result).git }}
-          echo ${{ fromJson(needs.read.outputs.result).git.foo }}
+          echo "${{ fromJson(needs.read.outputs.result).git }}"
+          echo "${{ fromJson(needs.read.outputs.result).git.foo }}"
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
