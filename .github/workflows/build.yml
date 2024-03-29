@@ -60,7 +60,6 @@ jobs:
         run: |
           echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
           echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          echo "foo=bar" >> $GITHUB_OUTPUT
 
       # - name: free disk space
       #   run: |
@@ -121,7 +120,8 @@ jobs:
           matrix-key: ${{ matrix.targetPlatform }}
           outputs: |-
             releases: ${{ steps.release.outputs.assets }}
-            git: ${{ steps.git.outputs }}
+            commit_hash: ${{ steps.git.outputs.commit_hash }}
+            commit_message: ${{ steps.git.outputs.commit_message }}
 
   read:
     runs-on: ubuntu-latest
@@ -135,7 +135,8 @@ jobs:
           matrix-step-name: release
     outputs:
       result: ${{ steps.read.outputs.result }}
-      git: ${{ steps.read.outputs.git }}
+      commit_hash: ${{ steps.read.outputs.commit_hash }}
+      commit_message: ${{ steps.read.outputs.commit_message }}
 
   deploy:
     needs: read
@@ -176,10 +177,8 @@ jobs:
 
       - name: check env 
         run: |
-          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64 }}"
-          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.foo }}"
-          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.commit_hash }}"
-          echo "${{ fromJson(needs.read.outputs.result).git.StandaloneLinux64.commit_message }}"
+          echo "${{ fromJson(needs.read.outputs.result).commit_hash.StandaloneLinux64 }}"
+          echo "${{ fromJson(needs.read.outputs.result).commit_message.StandaloneLinux64 }}"
 
       # - name: substitute env on index.html
       #   uses: danielr1996/envsubst-action@1.1.0
