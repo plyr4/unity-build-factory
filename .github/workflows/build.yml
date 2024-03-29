@@ -7,7 +7,7 @@ on:
         type: string
         description: path to github project, in format <owner>/<repo>
         required: true
-      
+
       ref:
         type: string
         description: ref to use when cloning the project. default is the head ref of the target repository
@@ -17,7 +17,7 @@ on:
         type: boolean
         description: deploy to gh-pages branch for <owner>/<repo> after build
         default: true
-      
+
       pages-deploy-branch:
         type: string
         description: branch to use when deploying to pages. default is gh-pages
@@ -53,6 +53,12 @@ jobs:
           lfs: true
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
+
+      - name: write git info
+        id: git
+        run: |
+          echo ::set-output name=commit_message::$(git log -1 --pretty=%B)
+          echo ::set-output name=commit_hash::$(git rev-parse --short HEAD)
 
       - name: free disk space
         run: |
@@ -104,7 +110,7 @@ jobs:
           tag_name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
           files: neebo-${{ matrix.targetPlatform }}.zip
           fail_on_unmatched_files: true
-        
+
       - name: write matrix outputs
         uses: cloudposse/github-action-matrix-outputs-write@main
         id: out
@@ -164,19 +170,13 @@ jobs:
           name: WebGL-Template
           path: .
 
-      - name: get commit hash
-        id: get-commit
-        uses: pr-mpt/actions-commit-hash@v2
-
       - name: substitute env on index.html
         uses: danielr1996/envsubst-action@1.1.0
         env:
           LINUX_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneLinux64[0].browser_download_url }}
           WINDOWS_BUILD_LINK: ${{ fromJson(needs.read.outputs.result).releases.StandaloneWindows64[0].browser_download_url }}
-
-          # todo: pull these from the head ref of the target repository that was just cloned
-          BUILD_COMMIT: ${{ steps.get-commit.outputs.short }}
-          BUILD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          BUILD_COMMIT: ${{ steps.git.outputs.commit_hash }}
+          BUILD_COMMIT_MESSAGE: ${{ steps.git.outputs.commit_message }}
         with:
           input: ./index.html
           output: ./index.html
