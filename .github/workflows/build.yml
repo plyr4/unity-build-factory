@@ -134,6 +134,7 @@ jobs:
           matrix-step-name: release
     outputs:
       result: ${{ steps.read.outputs.result }}
+      git: ${{ steps.read.outputs.git }}
 
   deploy:
     needs: read
@@ -174,7 +175,7 @@ jobs:
 
       - name: check env 
         run: |
-          echo ${{ fromJson(needs.read.outputs.result) }}
+          echo ${{ fromJson(needs.read.outputs.result).git }}
           echo ${{ steps.git.outputs.foo }}
 
       # - name: substitute env on index.html
