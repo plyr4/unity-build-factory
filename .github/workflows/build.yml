@@ -3,6 +3,12 @@ name: project builder
 on:
   workflow_dispatch:
     inputs:
+      name:
+        type: string
+        description: name/identifier of the game
+        required: true
+        default: neebo
+
       repository:
         type: string
         description: path to github project, in format <owner>/<repo>
@@ -80,8 +86,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ matrix.targetPlatform }}
-          restore-keys: Library-${{ matrix.targetPlatform }}
+          key: Library-${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}
+          restore-keys: Library-${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}
 
       - name: build project for ${{ matrix.targetPlatform }}
         uses: game-ci/unity-builder@v4
@@ -100,7 +106,7 @@ jobs:
           path: build/${{ matrix.targetPlatform }}
 
       - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../neebo-${{ matrix.targetPlatform }}.zip .
+        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip .
 
       - name: publish ${{ matrix.targetPlatform }} pre-release
         uses: softprops/action-gh-release@v1
@@ -109,7 +115,7 @@ jobs:
           prerelease: true
           name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
           tag_name: ${{ github.event.inputs.repository }}-${{ matrix.targetPlatform }}
-          files: neebo-${{ matrix.targetPlatform }}.zip
+          files: ${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip
           fail_on_unmatched_files: true
 
       - name: write matrix outputs
