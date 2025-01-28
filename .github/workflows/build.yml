@@ -104,10 +104,10 @@ jobs:
         id: upload
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ github.event.inputs.name }}
+          path: build/${{ matrix.targetPlatform }}
 
       - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ github.event.inputs.name }} && zip -r ../../${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip .
+        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip .
 
       - name: publish ${{ matrix.targetPlatform }} pre-release
         uses: softprops/action-gh-release@v1
