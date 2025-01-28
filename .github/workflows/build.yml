@@ -97,16 +97,17 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: ${{ github.event.inputs.name }}
 
       - name: upload ${{ matrix.targetPlatform }} build
         uses: actions/upload-artifact@v4
         id: upload
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: build/${{ github.event.inputs.name }}
 
       - name: archive ${{ matrix.targetPlatform }} release
-        run: cd build/${{ matrix.targetPlatform }} && zip -r ../../${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip .
+        run: cd build/${{ github.event.inputs.name }} && zip -r ../../${{ github.event.inputs.name }}-${{ matrix.targetPlatform }}.zip .
 
       - name: publish ${{ matrix.targetPlatform }} pre-release
         uses: softprops/action-gh-release@v1
