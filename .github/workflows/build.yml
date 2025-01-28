@@ -172,9 +172,9 @@ jobs:
       - name: unpack webgl build
         run: |
           ls -lar .
-          ls -lar WebGL
-          cp -r WebGL/Build .
-          rm -rf WebGL
+          ls -lar ${{ github.event.inputs.name }}
+          cp -r ${{ github.event.inputs.name }}/Build .
+          rm -rf ${{ github.event.inputs.name }}
 
       - name: download webgl template
         uses: actions/download-artifact@v4
