@@ -69,11 +69,27 @@ jobs:
 
       - name: free disk space
         run: |
+          df -h
+
+          docker system df
+
           sudo swapoff -a
           sudo rm -f /swapfile
-          sudo apt clean
-          docker image ls -aq | xargs -r docker rmi
+
+          sudo apt-get remove -y '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+
+          docker system prune -a -f --volumes
+
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
           df -h
+          docker system df
 
       - name: upload webgl template
         uses: actions/upload-artifact@v4
