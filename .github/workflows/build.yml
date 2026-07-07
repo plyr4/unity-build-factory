@@ -66,7 +66,6 @@ jobs:
         run: |
           echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "commit_message=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
-          tree .
 
       - name: free disk space
         run: |
@@ -99,9 +98,7 @@ jobs:
           name: WebGL-Template
           path: WebGL
 
-      - name: cache Library
-        if: always()
-        id: cache
+      - name: restore Library cache
         uses: actions/cache@v3
         with:
           path: Library
