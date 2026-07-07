@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GAME</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico?v=0.1.4">
+    <link rel="stylesheet" href="TemplateData/style.css?v=0.1.4">
+</head>
+
+<body>
+    <div id="another-container">
+        <div id="content-container">
+            <div id="warning-banner"></div>
+            <!-- <div id="content-spacer"></div> -->
+            <div id="unity-scroll-wrapper">
+                <div id="unity-container" class="unity-desktop">
+                    <div id="unity-footer">
+                        <!-- top left -->
+                        <div id="title-spacer"></div>
+                        <!-- center -->
+                        <div id="unity-build-title">GAME</div>
+                        <!-- top right -->
+                        <div id="unity-fullscreen-button-container">
+                            <div id="unity-fullscreen-button"></div>
+                        </div>
+                        <div id="title-spacer-right"></div>
+                    </div>
+                    <div id="gate-overlay">
+                        <div id="gate-box">
+                            <div id="gate-title">Demo Build <span id="gate-version">0.1.4</span></div>
+                            <div id="gate-form">
+                                <input type="password" id="gate-input" placeholder="password" autocomplete="off"
+                                    spellcheck="false" />
+                                <button id="gate-submit">Enter</button>
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="unity-canvas" style="display:none"></canvas>
+                    <div id="unity-loading-bar">
+                        <div id="unity-logo"></div>
+                        <div id="unity-progress-bar-empty">
+                            <div id="unity-progress-bar-full"></div>
+                        </div>
+                    </div>
+                    <div id="unity-warning"></div>
+                </div>
+            </div>
+            <div id="unity-fullscreen-button-mobile"></div>
+            <div id="game-info">
+                <div id="about">
+                    <div class="header">ABOUT GAME</div>
+                    <div class="info">
+                        <div class="line">?</div>
+                    </div>
+                    <br />
+                </div>
+                <div id="controls">
+                    <div class="header">CONTROLS</div>
+                    <ul>
+                        <li>?</li>
+                    </ul>
+                </div>
+                <div id="known-issues">
+                    <div class="header">KNOWN ISSUES</div>
+                    <ul>
+                        <li>?</li>
+                    </ul>
+                </div>
+                <div id="downloads">
+                    <div class="header">DOWNLOADS</div>
+                    <ul>
+                        <div class="download"><img class="sml-icon download-icon" src="/TemplateData/windows.png" />
+                            windows
+                            <a href="${WINDOWS_BUILD_LINK}" target="_blank">${WINDOWS_BUILD_LINK}</a>
+                        </div>
+                        <div class="download"><img class="sml-icon download-icon" src="/TemplateData/linux.png" />
+                            linux
+                            <a href="${LINUX_BUILD_LINK}" target="_blank">${LINUX_BUILD_LINK}</a>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+            <div id="footer">
+                <a href="https://plyr4.com" target="_blank">plyr4</a>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        (function () {
+            //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('newpassword'))
+            //     .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('')))
+            const PASSWORD_HASH = '2ea5a4d7c134a83cc3e9b2f2cab703042c45faa80a01ec2b11f4e63dd514609f';
+            const SESSION_KEY = 'game_auth_v1';
+
+            (function () {
+                const overlay = document.getElementById('gate-overlay');
+                const input = document.getElementById('gate-input');
+                const submit = document.getElementById('gate-submit');
+
+                if (sessionStorage.getItem(SESSION_KEY) === '1') {
+                    overlay.style.display = 'none';
+                    document.getElementById('unity-canvas').style.display = '';
+                    initGame();
+                    return;
+                }
+
+                async function hashPassword(pw) {
+                    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+                    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+                }
+
+                async function tryUnlock() {
+                    const pw = input.value;
+                    if (!pw) return;
+                    submit.disabled = true;
+                    const hash = await hashPassword(pw);
+                    submit.disabled = false;
+                    if (hash === PASSWORD_HASH) {
+                        sessionStorage.setItem(SESSION_KEY, '1');
+                        overlay.classList.add('hidden');
+                        setTimeout(() => { overlay.remove(); document.getElementById('unity-canvas').style.display = ''; }, 400);
+                        initGame();
+                    } else {
+                        input.value = '';
+                        input.focus();
+                    }
+                }
+
+                submit.addEventListener('click', tryUnlock);
+                input.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+                input.focus();
+            })();
+            // ─────────────────────────────────────────────────────────────────────────────
+
+            function initGame() {
+                var container = document.querySelector("#unity-container");
+                var canvas = document.querySelector("#unity-canvas");
+                var loadingBar = document.querySelector("#unity-loading-bar");
+                var progressBarFull = document.querySelector("#unity-progress-bar-full");
+                var warningBanner = document.querySelector("#unity-warning");
+                var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+
+                // Shows a temporary message banner/ribbon for a few seconds, or
+                // a permanent error message on top of the canvas if type=='error'.
+                // If type=='warning', a yellow highlight color is used.
+                // Modify or remove this function to customize the visually presented
+                // way that non-critical warnings and error messages are presented to the
+                // user.
+                function unityShowBanner(msg, type) {
+                    function updateBannerVisibility() {
+                        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+                    }
+
+                    var div = document.createElement('div');
+                    div.innerHTML = msg;
+                    warningBanner.appendChild(div);
+                    if (type == 'error') div.style = 'background: red; padding: 10px;';
+                    else {
+                        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+                        setTimeout(function () {
+                            warningBanner.removeChild(div);
+                            updateBannerVisibility();
+                        }, 5000);
+                    }
+                    updateBannerVisibility();
+                }
+
+                var buildUrl = "Build";
+                var loaderUrl = buildUrl + "/game.loader.js";
+                var config = {
+                    dataUrl: buildUrl + "/game.data",
+                    frameworkUrl: buildUrl + "/game.framework.js",
+                    codeUrl: buildUrl + "/game.wasm",
+                    streamingAssetsUrl: "StreamingAssets",
+                    companyName: "plyr4",
+                    productName: "game",
+                    productVersion: "${BUILD_COMMIT}",
+                    showBanner: unityShowBanner,
+                };
+
+                // config.matchWebGLToCanvasSize = true;
+                // config.devicePixelRatio = 1;
+
+                canvas.style.width = "1280px";
+                canvas.style.height = "720px";
+
+                loadingBar.style.display = "block";
+
+                var script = document.createElement("script");
+                script.src = loaderUrl;
+                script.onload = () => {
+                    createUnityInstance(canvas, config, (progress) => {
+                        progressBarFull.style.width = 100 * progress + "%";
+                    }).then((unityInstance) => {
+                        loadingBar.style.display = "none";
+                        fullscreenButton.onclick = () => {
+                            unityInstance.SetFullscreen(1);
+                        };
+                        document.getElementById('unity-fullscreen-button-mobile').onclick = () => {
+                            unityInstance.SetFullscreen(1);
+                        };
+                    }).catch((message) => {
+                        alert(message);
+                    });
+                };
+                document.body.appendChild(script);
+            }
+
+            var warning = `<div><div class="warning-windows">This game is a <strong>work in progress</strong> and does not reflect the final build.</br></br>The demo is meant for PC but can be played on mobile.</br></br>Thanks for playing!</div></div>`;
+            document.querySelector("#warning-banner").innerHTML = warning;
+        })();
+    </script>
+</body>
+
+</html>
